@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Any, Callable, Dict, List
 
-from chunking import compute_similarity
-from models import Document
+from .chunking import compute_similarity
+from .models import Document
 
 
 class EmbeddingStore:
@@ -58,11 +58,26 @@ class EmbeddingStore:
     def search(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
         return self._search_records(query, self._store, top_k)
 
-    def count(self) -> int:
+    def get_collection_size(self) -> int:
         return len(self._store)
 
     def clear(self) -> None:
         self._store.clear()
 
-    def delete(self) -> None:
-        self.clear()
+    def search_with_filter(self, query: str, top_k: int = 3, metadata_filter: dict = None) -> List[Dict[str, Any]]:
+        filtered_records = self._store
+        if metadata_filter:
+            filtered_records = []
+            for record in self._store:
+                meta = record.get("metadata", {})
+                if all(meta.get(k) == v for k, v in metadata_filter.items()):
+                    filtered_records.append(record)
+        return self._search_records(query, filtered_records, top_k)
+
+    def delete_document(self, doc_id: str) -> bool:
+        initial_length = len(self._store)
+        self._store = [
+            record for record in self._store 
+            if record.get("metadata", {}).get("doc_id") != doc_id
+        ]
+        return len(self._store) < initial_length

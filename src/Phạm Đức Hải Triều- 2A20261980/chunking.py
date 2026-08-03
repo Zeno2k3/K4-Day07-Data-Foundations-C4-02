@@ -164,15 +164,16 @@ class ChunkingStrategyComparator:
             sizes = [len(chunk) for chunk in chunks]
             count = len(sizes)
             return {
-                "total_chunks": float(count),
-                "average_length": float(sum(sizes) / count) if count else 0.0,
+                "count": float(count),
+                "avg_length": float(sum(sizes) / count) if count else 0.0,
                 "max_length": float(max(sizes)) if count else 0.0,
                 "min_length": float(min(sizes)) if count else 0.0,
+                "chunks": chunks,
             }
 
         return {
             "fixed_size": compute_stats(fixed),
-            "sentence": compute_stats(sentence),
+            "by_sentences": compute_stats(sentence),
             "recursive": compute_stats(recursive),
         }
 
