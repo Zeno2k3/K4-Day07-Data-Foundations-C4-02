@@ -2,9 +2,14 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-from .chunking import _dot
-from .embeddings import _mock_embed
-from .models import Document
+try:
+    from .chunking import _dot
+    from .embeddings import _mock_embed
+    from .models import Document
+except ImportError:  # pragma: no cover
+    from chunking import _dot
+    from embeddings import _mock_embed
+    from models import Document
 
 
 class EmbeddingStore:
@@ -85,3 +90,9 @@ class EmbeddingStore:
         """
         # TODO: remove all stored chunks where metadata['doc_id'] == doc_id
         raise NotImplementedError("Implement EmbeddingStore.delete_document")
+
+
+if __name__ == "__main__":
+    print("EmbeddingStore module loaded successfully.")
+    print("This script defines EmbeddingStore but does not execute storage operations by default.")
+    print("Import EmbeddingStore from the package to use it in your application.")
