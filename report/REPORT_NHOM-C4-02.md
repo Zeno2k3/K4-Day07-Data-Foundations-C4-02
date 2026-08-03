@@ -1,7 +1,7 @@
 # Báo Cáo Nhóm — Lab 7: Embedding & Vector Store
 
 **Nhóm:** C4-02
-**Thành viên:** Trần Minh Quân (2A202601768) · Võ Hồ Nhật Nam (2A202601700) · Nguyễn Xuân Hải · Phạm Đức Hải Triều
+**Thành viên:** Trần Minh Quân (2A202601768) · Võ Hồ Nhật Nam (2A202601700) · Nguyễn Xuân Hải · Phạm Đức Hải Triều · Vũ Bảo Khánh
 **Ngày:** 03/08/2026
 
 > **Nộp 1 bản / nhóm.** Phần cá nhân (hướng tiếp cận, kết quả riêng, dự đoán…) mỗi thành viên nộp riêng trong `REPORT_CANHAN.md`. Chi tiết thang điểm: `docs/SCORING.md`.
@@ -92,6 +92,10 @@ Chạy `ChunkingStrategyComparator().compare(text, chunk_size=400)` trên 3 tài
 - **Loại chiến lược:** Sentence-based (`SentenceChunker`, `max_sentences_per_chunk=2`), dùng trong `run_qa_demo.py`.
 - **Mô tả & lý do chọn:** Thoả yêu cầu riêng của K4 ("ít nhất một thành viên thử chia theo câu/FAQ pair"). Với các đoạn hướng dẫn ngắn kiểu hỏi-đáp trong `shopee-instant-refund-proposal.md`, nhóm 2 câu/chunk giữ trọn một chỉ dẫn (ví dụ "Nếu không đồng ý → chọn Trao đổi thêm / Tôi muốn trả hàng") mà không bị cắt rời hành động khỏi điều kiện.
 
+**Thành viên 5 — Vũ Bảo Khánh**
+- **Loại chiến lược:** `RecursiveChunker` kết hợp gán Metadata động (từ Front Matter).
+- **Mô tả & lý do chọn:** Dùng `RecursiveChunker` để tách văn bản thông minh (ưu tiên `\n\n`) giúp giữ nguyên vẹn trọn vẹn ngữ nghĩa của một điều khoản. Bổ sung gán metadata tự động (`customer_role`, `policy_section`) để có thể thu hẹp phạm vi tìm kiếm (bằng `search_with_filter`), tăng độ chính xác tuyệt đối cho kết quả truy xuất.
+
 ### So Sánh Giữa Các Thành Viên
 
 | Thành viên | Chiến lược (Strategy) | Điểm truy xuất (/10) | Điểm mạnh | Điểm yếu |
@@ -100,6 +104,7 @@ Chạy `ChunkingStrategyComparator().compare(text, chunk_size=400)` trên 3 tài
 | Võ Hồ Nhật Nam | Recursive (đối chiếu cả 3) + sửa lỗi metadata | 4/10 (cùng bộ số liệu như trên, đã kiểm chứng lại) | Có số liệu định lượng cho cả 3 chiến lược, phát hiện lỗi ảnh hưởng tới lọc theo doc_id | Tốn thời gian chạy so sánh trên nhiều tài liệu, chưa benchmark đầy đủ Fixed/Sentence trên toàn corpus |
 | Nguyễn Xuân Hải | FixedSize, chunk_size=500/overlap=50 | Chưa đo trên bộ câu hỏi nhóm (ước lượng thấp hơn Recursive dựa trên bảng baseline) | Đơn giản, nhanh, số chunk dự đoán được | Hay cắt ngang câu/điều kiện đang mô tả dở, dễ làm agent trả lời thiếu vế |
 | Phạm Đức Hải Triều | Sentence, max_sentences_per_chunk=2 | Chưa đo trên bộ câu hỏi nhóm (ước lượng tốt cho câu hỏi FAQ ngắn, kém cho điều khoản dài) | Rất tự nhiên với các đoạn hỏi-đáp ngắn | Với đoạn nhiều câu dài (như "Chính sách Trả hàng và Hoàn tiền") chunk phình to bất thường (xem `by_sentences` avg_length 705–816 ở bảng baseline) |
+| Vũ Bảo Khánh | RecursiveChunker + Metadata filter | 10/10 (5/5 câu có chunk liên quan trong top-3) | Giữ ngữ cảnh tốt nhờ tách theo đoạn, thu hẹp chính xác bằng Metadata filter | Phụ thuộc vào việc tài liệu gốc có được gán metadata đầy đủ và chuẩn xác ở Front Matter |
 
 **Chiến lược nào tốt nhất cho chủ đề này? Tại sao?**
 > Recursive chunking phù hợp nhất với corpus chính sách Shopee của nhóm vì tài liệu có cấu trúc mục/đoạn rõ ràng (1.1, 1.2, A/B/C…) — Recursive tận dụng được ranh giới này trước khi phải cắt cứng, cho kết quả cân bằng nhất giữa "giữ ngữ cảnh" và "kích thước chunk ổn định" (xem bảng baseline: avg_length lệch ít hơn Sentence, số chunk hợp lý hơn Fixed). Sentence chunking là lựa chọn tốt thứ hai, đặc biệt hợp cho các đoạn FAQ ngắn (đúng yêu cầu riêng của K4), nhưng dễ tạo chunk quá to khi gặp đoạn văn nhiều câu liên tiếp như trong tài liệu chính sách chính thức dài (`shopee-return-refund-policy.md`, 26K ký tự).
